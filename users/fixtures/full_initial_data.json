@@ -1,0 +1,46 @@
+[
+  {
+    "model": "lms.course",
+    "pk": 1,
+    "fields": {
+      "title": "Тестовый курс",
+      "preview": "",
+      "description": "Описание тестового курса"
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 1,
+    "fields": {
+      "title": "Тестовый урок",
+      "description": "Первый урок тестового курса",
+      "preview": "",
+      "video_url": "https://example.com/video1",
+      "course": 1
+    }
+  },
+  {
+    "model": "users.payment",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "payment_date": "2024-02-01T12:00:00Z",
+      "paid_course": 1,
+      "paid_lesson": null,
+      "amount": "1000.00",
+      "payment_method": "cash"
+    }
+  },
+  {
+    "model": "users.payment",
+    "pk": 2,
+    "fields": {
+      "user": 1,
+      "payment_date": "2024-02-03T15:20:00Z",
+      "paid_course": null,
+      "paid_lesson": 1,
+      "amount": "350.00",
+      "payment_method": "transfer"
+    }
+  }
+]
