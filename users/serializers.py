@@ -22,3 +22,28 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = "__all__"
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ("id", "email", "password")
+
+    def create(self, validated_data):
+        user = User(
+            email=validated_data.get("email"),
+        )
+        user.set_password(validated_data["password"])
+        user.save()
+        return user
+
+
+class PublicUserSerializer(serializers.ModelSerializer):
+    """
+    Урезанный профиль для чужих пользователей.
+    """
+    class Meta:
+        model = User
+        fields = ("id", "email", "city", "avatar")
