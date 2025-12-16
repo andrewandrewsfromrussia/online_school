@@ -99,6 +99,20 @@ class Payment(models.Model):
         verbose_name="Способ оплаты",
     )
 
+    session_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="ID сессии Stripe"
+    )
+
+    link = models.URLField(
+        max_length=1000,
+        blank=True,
+        null=True,
+        verbose_name="Ссылка на оплату"
+    )
+
     def __str__(self):
         return f"Платеж #{self.pk} от {self.user}"
 

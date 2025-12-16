@@ -6,6 +6,7 @@ class Course(models.Model):
     title = models.CharField(max_length=255, verbose_name="Название")
     preview = models.ImageField(upload_to="course_previews/", blank=True, null=True, verbose_name="Превью")
     description = models.TextField(blank=True, verbose_name="Описание")
+    price = models.PositiveIntegerField(default=100, verbose_name="Цена")
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -23,6 +24,7 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="lessons", verbose_name="Курс")
     title = models.CharField(max_length=255, verbose_name="Название")
     description = models.TextField(blank=True, verbose_name="Описание")
+    price = models.PositiveIntegerField(default=100, verbose_name="Цена")
     preview = models.ImageField(upload_to="lesson_preview/", blank=True, null=True, verbose_name="Превью")
     video_url = models.URLField(blank=True, null=True, verbose_name="Видео")
     owner = models.ForeignKey(
