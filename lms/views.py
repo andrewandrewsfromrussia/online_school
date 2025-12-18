@@ -7,8 +7,13 @@ from django.shortcuts import get_object_or_404
 
 from .permissions import IsModer, IsOwner
 from .models import Course, Lesson, Subscription
-from .serializers import CourseSerializer, LessonSerializer
+from .serializers import CourseSerializer, LessonSerializer, SubscriptionToggleSerializer
 from .paginators import CoursePagination, LessonPagination
+
+from .tasks import send_course_update_email
+
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 class CourseViewSet(ModelViewSet):
@@ -31,8 +36,27 @@ class CourseViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+    def perform_update(self, serializer):
+        course = serializer.save()
+
+        emails = (
+            Subscription.objects
+            .filter(course=course)
+            .select_related("user")
+            .values_list("user__email", flat=True)
+        )
+
+        for email in emails:
+            send_course_update_email.delay(email, course.title, course.id)
+
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Course.objects.none()
+
         user = self.request.user
+
+        if not user.is_authenticated:
+            return Course.objects.none()
 
         if user.groups.filter(name="moderators").exists():
             return Course.objects.all()
@@ -81,6 +105,16 @@ class LessonRetrieveUpdateDestroyView(generics.RetrieveDestroyAPIView):
 class SubscriptionToggleView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["course_id"],
+            properties={
+                "course_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="ID курса"),
+            },
+        ),
+        responses={200: "OK", 400: "Bad Request"},
+    )
     def post(self, request, *args, **kwargs):
         user = request.user
         course_id = request.data.get("course_id")
