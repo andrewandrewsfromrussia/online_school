@@ -13,8 +13,10 @@ class PaymentSerializer(serializers.ModelSerializer):
             "paid_lesson",
             "amount",
             "payment_method",
+            "session_id",
+            "link",
         )
-
+        read_only_fields = ("id", "user", "payment_date", "session_id", "link")
 
 class UserSerializer(serializers.ModelSerializer):
     payments = PaymentSerializer(many=True, read_only=True)
