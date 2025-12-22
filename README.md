@@ -10,6 +10,7 @@
 - Django
 - Django REST Framework
 - djangorestframework-simplejwt
+- django-celery-beat
 - django-filter
 - drf-yasg
 - stripe
@@ -289,6 +290,8 @@ POST /api/payment/create/
 - Расписание задано в CELERY_BEAT_SCHEDULE
 
 - Запуск осуществляется отдельным процессом celery beat
+
+- update: периодическая задача создаётся миграцией
 
 ## Запуск Celery
 
