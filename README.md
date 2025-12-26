@@ -10,6 +10,7 @@
 - Django
 - Django REST Framework
 - djangorestframework-simplejwt
+- django-celery-beat
 - django-filter
 - drf-yasg
 - stripe
@@ -232,4 +233,75 @@ POST /api/payment/create/
   "session_id": "cs_test_a1b2...",
   "link": "https://checkout.stripe.com/c/pay/..."  // Ссылка на оплату
 }
+```
+
+## Фоновые и периодические задачи (Celery)
+
+#### В проекте реализованы асинхронные и периодические задачи с использованием Celery + Redis.
+
+### Инфраструктура
+
+- Broker / Result backend: Redis
+
+- Настройки Redis вынесены в переменные окружения
+
+- Celery интегрирован с Django
+
+- Для периодических задач используется Celery Beat (через CELERY_BEAT_SCHEDULE)
+
+- Таймзона Celery синхронизирована с Django (TIME_ZONE)
+
+## Асинхронная рассылка уведомлений о курсах
+
+#### Реализована асинхронная рассылка email-уведомлений подписчикам курса при его обновлении.
+
+Логика работы:
+
+- Пользователь может подписаться на курс
+
+- При обновлении курса (PUT / PATCH)
+
+- В контроллере (perform_update) выбираются подписчики курса
+
+- Для каждого подписчика в очередь ставится Celery-задача
+
+- Отправка email происходит асинхронно, без блокировки HTTP-запроса
+
+Используется console email backend для разработки (письма выводятся в терминал).
+
+## Периодическая блокировка неактивных пользователей
+
+#### Реализована периодическая задача, которая:
+
+- проверяет поле last_login
+
+- если пользователь не заходил более 30 дней
+
+- и при этом is_active=True
+
+- пользователь автоматически блокируется (is_active=False)
+
+#### Реализация:
+
+- Celery-task: deactivate_inactive_users
+
+- Задача выполняется ежедневно по расписанию через Celery Beat
+
+- Расписание задано в CELERY_BEAT_SCHEDULE
+
+- Запуск осуществляется отдельным процессом celery beat
+
+- update: периодическая задача создаётся миграцией
+
+## Запуск Celery
+
+#### В режиме разработки используются два отдельных процесса:
+
+### Celery worker
+```
+poetry run celery -A config worker -l info --pool=solo -c 1
+```
+### Celery beat
+```
+poetry run celery -A config beat -l info
 ```

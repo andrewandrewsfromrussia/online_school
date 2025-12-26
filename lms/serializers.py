@@ -56,3 +56,6 @@ class CourseSerializer(serializers.ModelSerializer):
             return False
 
         return obj.subscriptions.filter(user=user).exists()
+
+class SubscriptionToggleSerializer(serializers.Serializer):
+    course_id = serializers.IntegerField()

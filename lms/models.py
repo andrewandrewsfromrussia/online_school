@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 
 class Course(models.Model):
@@ -15,6 +16,9 @@ class Course(models.Model):
         null=True,
         blank=True,
     )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создан")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлён")
 
     def __str__(self):
         return self.title
@@ -35,6 +39,9 @@ class Lesson(models.Model):
         null=True,
         blank=True,
     )
+
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создан")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлён")
 
     def __str__(self):
         return f"{self.course.title} - {self.title}"

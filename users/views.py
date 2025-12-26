@@ -31,8 +31,10 @@ class UserProfileUpdateView(generics.RetrieveUpdateAPIView):
     """
     Просмотр любого профиля, редактирование только своего.
     """
-    queryset = User.objects.all()
     permission_classes = [IsAuthenticated, IsSelfOrReadOnly]
+
+    def get_object(self):
+        return self.request.user
 
     def get_serializer_class(self):
         if self.request.user == self.get_object():
