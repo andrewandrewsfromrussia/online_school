@@ -305,3 +305,61 @@ poetry run celery -A config worker -l info --pool=solo -c 1
 ```
 poetry run celery -A config beat -l info
 ```
+
+## Запуск проекта через Docker Compose
+### Запуск проекта
+
+В корне проекта выполните команду:
+```
+docker compose up --build
+```
+
+
+После запуска сервисы будут доступны:
+- Backend (Django): http://localhost:8000/
+- PostgreSQL: localhost:5432
+- Redis: localhost:6379
+
+### Остановка проекта
+
+Остановить контейнеры:
+```
+docker compose down
+```
+
+Остановить контейнеры с удалением данных (volumes):
+```
+docker compose down -v
+```
+
+
+## Проверка работоспособности сервисов
+
+### Проверка контейнеров
+```
+docker compose ps
+```
+
+
+### Проверка Backend
+Откройте в браузере:
+- http://localhost:8000/
+
+### Проверка PostgreSQL
+```
+docker compose exec db psql -U online_school -d online_school -c "SELECT 1;"
+```
+
+Ожидаемый результат — одна строка со значением `1`.
+
+### Проверка Redis
+```
+docker compose exec redis redis-cli ping
+```
+Ожидаемый результат — `PONG`.
+
+### Проверка Celery worker
+```
+docker compose exec celery celery -A config inspect ping
+```
+Ожидаемый результат — ответ `pong` от ноды Celery.
