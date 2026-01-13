@@ -34,9 +34,9 @@ jobs:
           --health-retries=20
 
     env:
-      DJANGO_SECRET_KEY: ci-secret-key
-      DJANGO_DEBUG: "1"
-      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      SECRET_KEY: ci-secret-key
+      DEBUG: "1"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
 
       DB_HOST: "127.0.0.1"
       DB_PORT: "5432"
