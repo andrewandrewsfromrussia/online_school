@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env for CI
+        run: |
+          cat > .env << 'EOF'
+          DJANGO_SECRET_KEY=ci-secret-key
+          DJANGO_DEBUG=1
+          DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+          DB_HOST=db
+          DB_PORT=5432
+          DB_NAME=online_school
+          DB_USER=online_school
+          DB_PASSWORD=password
+          REDIS_HOST=redis
+          REDIS_PORT=6379
+          EOF
+
+      - name: Start db and redis
+        run: docker compose up -d db redis
+
+      - name: Run tests
+        run: docker compose run --rm backend python manage.py test
+
+      - name: Shutdown
+        if: always()
+        run: docker compose down -v
