@@ -63,3 +63,13 @@ jobs:
 
       - name: Run tests
         run: poetry run python manage.py test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Deploy placeholder
+        run: |
+          echo "Deploy will run here after tests"
