@@ -86,5 +86,15 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_SSH_PORT }}
           script: |
-            echo "Connected to server"
-            # TODO: add real deploy commands after server is prepared
+            set -e
+
+            cd /opt/online_school
+
+            git fetch --all
+            git reset --hard origin/develop
+
+            /opt/online_school/.venv/bin/python manage.py migrate --noinput
+            /opt/online_school/.venv/bin/python manage.py collectstatic --noinput
+
+            sudo systemctl restart online_school.service
+            sudo systemctl reload nginx

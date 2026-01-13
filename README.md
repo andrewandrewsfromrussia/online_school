@@ -7,15 +7,15 @@
 ## Стек технологий
 
 - Python 3.11+
-- Django
-- Django REST Framework
+- Django, Django REST Framework
+- PostgreSQL
+- Redis
+- Celery, django-celery-beat
 - djangorestframework-simplejwt
-- django-celery-beat
 - django-filter
 - drf-yasg
-- stripe
+- Stripe
 - Poetry
-- SQLite
 - Pillow
 
 ---
@@ -166,6 +166,11 @@ POST /lms/subscriptions/toggle/
 - валидацию YouTube‑ссылок
 - механику подписок
 - поле `is_subscribed`
+### Запуск тестов:
+
+```bash
+docker compose run --rm backend python manage.py test
+```
 
 ### Результат покрытия:
 
@@ -363,3 +368,53 @@ docker compose exec redis redis-cli ping
 docker compose exec celery celery -A config inspect ping
 ```
 Ожидаемый результат — ответ `pong` от ноды Celery.
+
+## GitHub Actions (CI/CD)
+
+### Workflow расположен в:
+```
+.github/workflows/ci.yml
+```
+### Поведение:
+
+- Запускается при каждом push и pull_request
+- Job test:
+- - поднимает PostgreSQL и Redis как services
+- - устанавливает зависимости через Poetry
+- - запускает: poetry run python manage.py test
+- Ошибки тестов останавливают выполнение следующих шагов.
+
+### Job deploy:
+
+- Запускается только для ветки develop
+- Выполняется только если job test завершился успешно
+- Если SECRET SERVER_HOST не задан — деплой пропускается (чтобы сборки не падали без сервера)
+
+### Secrets для деплоя (GitHub → Settings → Secrets and variables → Actions):
+
+- SERVER_HOST — IP/домен сервера
+
+- SERVER_USER — пользователь на сервере (например deploy)
+
+- SERVER_SSH_KEY — приватный SSH-ключ
+
+- SERVER_SSH_PORT — порт SSH
+
+## Деплой на удалённый сервер (Gunicorn + systemd + Nginx)
+
+### В репозитории подготовлены шаблоны:
+
+- deploy/online_school.service — systemd unit для Gunicorn
+- deploy/gunicorn.conf.py — конфиг Gunicorn
+- deploy/nginx.conf — конфиг Nginx
+
+### Пошаговая инструкция по подготовке сервера:
+
+- deploy/README_DEPLOY.md
+
+### Краткая логика деплоя (что делает deploy job в CI):
+
+- обновляет код в /opt/online_school (git fetch/reset)
+- выполняет migrate и collectstatic
+- перезапускает systemd сервис online_school.service
+- перезагружает nginx
