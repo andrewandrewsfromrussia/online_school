@@ -8,31 +8,58 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      db:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: online_school
+          POSTGRES_USER: online_school
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U online_school -d online_school"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DJANGO_SECRET_KEY: ci-secret-key
+      DJANGO_DEBUG: "1"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+
+      DB_HOST: "127.0.0.1"
+      DB_PORT: "5432"
+      DB_NAME: "online_school"
+      DB_USER: "online_school"
+      DB_PASSWORD: "password"
+
+      REDIS_HOST: "127.0.0.1"
+      REDIS_PORT: "6379"
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Create .env for CI
-        run: |
-          cat > .env << 'EOF'
-          DJANGO_SECRET_KEY=ci-secret-key
-          DJANGO_DEBUG=1
-          DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
-          DB_HOST=db
-          DB_PORT=5432
-          DB_NAME=online_school
-          DB_USER=online_school
-          DB_PASSWORD=password
-          REDIS_HOST=redis
-          REDIS_PORT=6379
-          EOF
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
-      - name: Start db and redis
-        run: docker compose up -d db redis
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
 
       - name: Run tests
-        run: docker compose run --rm backend python manage.py test
-
-      - name: Shutdown
-        if: always()
-        run: docker compose down -v
+        run: poetry run python manage.py test
